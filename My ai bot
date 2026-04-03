@@ -1,0 +1,92 @@
+echo "# my-ai-bot" >> README.md
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/blaisejackyroods-rgb/my-ai-bot.git
+git push -u origin mainimport streamlit as st
+from transformers import pipeline
+import wikipedia
+
+# 1. Konfigirasyon paj la
+st.set_page_config(page_title="IA Konesans", page_icon="🤖")
+
+# 2. Chaje modèl IA a (ak caching pou li pa chaje chak fwa)
+@st.cache_resource
+def load_model():
+    return pipeline("question-answering", model="deepset/xlm-roberta-base-squad2")
+
+qa_pipeline = load_model()
+
+# 3. Sidebar pou paramèt yo
+with st.sidebar:
+    st.header("⚙️ Anviwònman")
+    lang = st.selectbox("Chwazi lang pou Wikipedia:", ["en", "fr", "es"])
+    wikipedia.set_lang(lang)
+    st.info("Sèvi ak 'en' pou plis rezilta, 'fr' pou rezilta an franse.")
+
+# 4. Entèfas prensipal la
+st.title("🤖 IA Chatbot Konesans")
+st.write("Entelijans sa a itilize Wikipedia pou l jwenn enfòmasyon epi reponn kesyon ou yo.")
+
+# Bwat antre yo
+sije = st.text_input("Sou ki sijè ou vle poze kesyon? (Egz: Haiti, Physics)")
+kesyon = st.text_input("Ki kesyon ou genyen?")
+
+# 5. Lojik aksyon an
+if st.button("Poze Kesyon"):
+    if sije and kesyon:
+        try:
+            with st.spinner('M ap chèche enfòmasyon...'):
+                # Chèche rezime nan Wikipedia
+                konteks = wikipedia.summary(sije, sentences=3)
+                
+                # Analize tèks la ak IA a
+                rezilta = qa_pipeline(question=kesyon, context=konteks)
+                
+                # Afiche rezilta yo
+                st.success("✅ Men repons lan:")
+                st.write(f"**{rezilta['answer']}**")
+                st.caption(f"Nivo konfyans IA a: {round(rezilta['score']*100, 1)}%")
+                
+                with st.expander("Gade sous enfòmasyon an"):
+                    st.write(konteks)
+                    
+        except wikipedia.exceptions.DisambiguationError:
+            st.error("Sijè sa a gen twòp repons posib, eseye bay plis presizyon.")
+        except Exception as e:
+            st.error(f"Eksize m, mwen pa jwenn anyen sou sa. Erè: {e}")
+    else:
+        st.warning("Tanpri ranpli tout chan yo!")import streamlit as st
+from transformers import pipeline
+import wikipedia
+
+# Tit paj la
+st.title("🤖 IA Chatbot Konesans")
+st.subheader("Mande m nenpòt bagay, m ap reponn ou!")
+
+# Chaje modèl la (ak caching pou li pa chaje chak fwa)
+@st.cache_resource
+def load_model():
+    return pipeline("question-answering", model="deepset/xlm-roberta-base-squad2")
+
+qa_pipeline = load_model()
+wikipedia.set_lang("en")
+
+# Chan pou antre done
+sije = st.text_input("Sou ki sijè ou vle poze kesyon?")
+kesyon = st.text_input("Ki kesyon ou genyen?")
+
+if st.button("Poze Kesyon"):
+    if sije and kesyon:
+        with st.spinner('M ap chèche nan Wikipedia...'):
+            try:
+                konteks = wikipedia.summary(sije, sentences=3)
+                rezilta = qa_pipeline(question=kesyon, context=konteks)
+                
+                st.success(f"Repons: {rezilta['answer']}")
+                st.write(f"Konfyans: {round(rezilta['score']*100, 1)}%")
+            except Exception as e:
+                st.error("Mwen pa jwenn enfòmasyon sa a oswa gen yon erè.")
+    else:
+        st.warning("Tanpri ranpli tou de bwat yo.")
