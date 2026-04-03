@@ -1,0 +1,29 @@
+import streamlit as st
+import wikipedia
+
+st.title("🤖 Chatbot Konesans Jeneral")
+
+# Chwazi lang
+lang = st.selectbox("Chwazi lang:", ["en", "fr", "es"])
+wikipedia.set_lang(lang)
+
+kesyon = st.text_input("Poze yon kesyon:")
+
+if st.button("Mande IA"):
+    if kesyon:
+        try:
+            with st.spinner('M ap chèche...'):
+                rezime = wikipedia.summary(kesyon, sentences=2)
+                st.success(rezime)
+        except wikipedia.exceptions.DisambiguationError as e:
+            st.warning(f"Gen plizyè repons posib: {e.options[:5]}")
+        except wikipedia.exceptions.PageError:
+            st.error("Mwen pa jwenn okenn enfòmasyon sou sa.")
+    else:
+        st.info("Tanpri ekri yon bagay!")git init
+git add .
+git commit -m "Vèsyon final sit IA a"
+git branch -M main
+# Ranplase lien sa ak lyen repo pa w la si se pa li
+git remote add origin https://github.com/blaisejackyroods-rgb/my-ai-bot.git
+git push -u origin main --force
